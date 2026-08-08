@@ -3,42 +3,13 @@ import { Room } from 'livekit-client';
 import { useEnsureRoom, useStartAudio } from '@livekit/components-react';
 import { Button } from '@/components/ui/button';
 
-/**
- * Props for the StartAudioButton component.
- */
 export interface StartAudioButtonProps extends ComponentProps<'button'> {
-  /**
-   * The size of the button.
-   * @defaultValue 'default'
-   */
   size?: 'default' | 'sm' | 'lg' | 'icon' | 'icon-sm' | 'icon-lg';
-  /**
-   * The variant of the button.
-   * @defaultValue 'default'
-   */
   variant?: 'default' | 'destructive' | 'outline' | 'secondary' | 'ghost' | 'link';
-  /**
-   * The LiveKit room instance. If not provided, uses the room from context.
-   */
   room?: Room;
-  /**
-   * The label text to display on the button.
-   */
   label: string;
 }
 
-/**
- * A button that allows users to start audio playback.
- * Required for browsers that block autoplay of audio.
- * Only renders when audio playback is blocked.
- *
- * @extends ComponentProps<'button'>
- *
- * @example
- * ```tsx
- * <StartAudioButton label="Click to allow audio playback" />
- * ```
- */
 export function StartAudioButton({
   size = 'default',
   variant = 'default',
@@ -49,9 +20,45 @@ export function StartAudioButton({
   const roomEnsured = useEnsureRoom(room);
   const { mergedProps } = useStartAudio({ room: roomEnsured, props });
 
+  // useStartAudio sets mergedProps.style.display = 'none' when audio is already running.
+  // We only render when the button is actually needed.
+  const isHidden =
+    (mergedProps as React.HTMLAttributes<HTMLButtonElement>).style?.display === 'none';
+
+  if (isHidden) return null;
+
   return (
-    <Button size={size} variant={variant} {...props} {...mergedProps}>
-      {label}
-    </Button>
+    // Fixed overlay so it always appears above the session view
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-blue-950/40 backdrop-blur-sm">
+      <div className="flex flex-col items-center gap-4 rounded-2xl border border-blue-100 bg-white px-8 py-7 shadow-xl text-center max-w-sm mx-4">
+        {/* Icon */}
+        <span className="text-4xl">🔊</span>
+
+        {/* Heading */}
+        <p className="text-base font-semibold text-blue-900">
+          Audio needs your permission
+        </p>
+
+        {/* Explanation */}
+        <p className="text-sm text-slate-500 leading-relaxed">
+          Your browser blocked audio playback automatically. Tap the button
+          below to allow your learning assistant to speak.
+        </p>
+
+        {/* The actual start-audio button */}
+        <Button
+          size="lg"
+          {...props}
+          {...mergedProps}
+          className="w-full rounded-full bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm tracking-wide shadow-md transition-all duration-150 hover:scale-105 active:scale-95"
+        >
+          🎙️ {label}
+        </Button>
+
+        <p className="text-xs text-slate-400">
+          You only need to do this once per session.
+        </p>
+      </div>
+    </div>
   );
 }

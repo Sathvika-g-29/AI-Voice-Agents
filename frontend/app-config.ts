@@ -33,40 +33,43 @@ export interface AppConfig {
 }
 
 export const APP_CONFIG_DEFAULTS: AppConfig = {
-  companyName: 'Murf AI',
-  pageTitle: 'Voice Agent Starter',
-  pageDescription: 'A voice agent powered by Murf Falcon — the fastest TTS API',
+  // ── Branding ────────────────────────────────────────────────────────
+  companyName: 'LitBot',
+  pageTitle: 'LitBot — Your Reading & Literacy Assistant',
+  pageDescription:
+    'A voice-powered learning assistant for teens. Ask questions, explore books, and improve your literacy — all through conversation.',
 
+  // ── Features ────────────────────────────────────────────────────────
+  // Chat input on: teens may prefer typing a question sometimes
   supportsChatInput: true,
-  supportsVideoInput: true,
-  supportsScreenShare: true,
+  // Video and screen share off: not needed for a literacy/reading assistant
+  supportsVideoInput: false,
+  supportsScreenShare: false,
+  // Pre-connect buffer on: reduces perceived latency on first response
   isPreConnectBufferEnabled: true,
 
+  // ── Assets ──────────────────────────────────────────────────────────
   logo: '/murf-logo.svg',
-  accent: '#6366F1',
   logoDark: '/murf-logo-dark.svg',
-  accentDark: '#818cf8',
-  startButtonText: 'Start talking',
 
-  // optional: audio visualization configuration
-  // audioVisualizerType: 'bar',
-  // audioVisualizerColor: '#002cf2',
-  // audioVisualizerColorDark: '#1fd5f9',
-  // audioVisualizerColorShift: 0.3,
-  // audioVisualizerBarCount: 5,
-  // audioVisualizerType: 'radial',
-  // audioVisualizerRadialBarCount: 24,
-  // audioVisualizerRadialRadius: 100,
-  // audioVisualizerType: 'grid',
-  // audioVisualizerGridRowCount: 25,
-  // audioVisualizerGridColumnCount: 25,
-  // audioVisualizerType: 'wave',
-  // audioVisualizerWaveLineWidth: 3,
-  // audioVisualizerType: 'aura',
+  // Blue accent — calm, focused, matches the blue-green palette
+  accent: '#2563EB',       // blue-600
+  accentDark: '#3B82F6',   // blue-500 (slightly lighter for dark mode)
 
-  // agent dispatch configuration
+  // ── UI copy ─────────────────────────────────────────────────────────
+  startButtonText: 'Start Learning',
+
+  // ── Audio visualizer ────────────────────────────────────────────────
+  // Wave style feels natural for a voice/speech context
+  audioVisualizerType: 'wave',
+  audioVisualizerColor: '#2563EB',      // blue-600 for light mode
+  audioVisualizerColorDark: '#34D399',  // emerald-400 for dark mode
+  audioVisualizerColorShift: 0.25,
+  audioVisualizerWaveLineWidth: 2.5,
+
+  // ── Agent dispatch ───────────────────────────────────────────────────
   agentName: process.env.AGENT_NAME ?? undefined,
 
-  // LiveKit Cloud Sandbox configuration
+  // ── LiveKit Cloud Sandbox ────────────────────────────────────────────
   sandboxId: undefined,
 };

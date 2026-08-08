@@ -1,73 +1,74 @@
 'use client';
 
-import { type ComponentProps } from 'react';
+import { useState, type ComponentProps } from 'react';
 import { type VariantProps } from 'class-variance-authority';
 import { PhoneOffIcon } from 'lucide-react';
 import { useSessionContext } from '@livekit/components-react';
 import { Button, buttonVariants } from '@/components/ui/button';
 import { cn } from '@/lib/shadcn/utils';
 
-/**
- * Props for the AgentDisconnectButton component.
- */
 export interface AgentDisconnectButtonProps
   extends ComponentProps<'button'>,
     VariantProps<typeof buttonVariants> {
-  /**
-   * Custom icon to display. Defaults to PhoneOffIcon.
-   */
   icon?: React.ReactNode;
-  /**
-   * The size of the button.
-   * @default 'default'
-   */
   size?: 'default' | 'sm' | 'lg' | 'icon';
-  /**
-   * The variant of the button.
-   * @default 'destructive'
-   */
   variant?: 'default' | 'outline' | 'destructive' | 'ghost' | 'link';
-  /**
-   * The children to render.
-   */
   children?: React.ReactNode;
-  /**
-   * The callback for when the button is clicked.
-   */
   onClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
-/**
- * A button to disconnect from the current agent session.
- * Calls the session's end() method when clicked.
- *
- * @extends ComponentProps<'button'>
- *
- * @example
- * ```tsx
- * <AgentDisconnectButton onClick={() => console.log('Disconnecting...')} />
- * ```
- */
 export function AgentDisconnectButton({
   icon,
   size = 'default',
   variant = 'destructive',
   children,
   onClick,
+  className,
   ...props
 }: AgentDisconnectButtonProps) {
   const { end } = useSessionContext();
+  const [isEnding, setIsEnding] = useState(false);
+
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     onClick?.(event);
     if (typeof end === 'function') {
+      setIsEnding(true);
       end();
     }
   };
 
   return (
-    <Button size={size} variant={variant} onClick={handleClick} {...props}>
-      {icon ?? <PhoneOffIcon />}
-      {children ?? <span className={cn(size?.includes('icon') && 'sr-only')}>END CALL</span>}
+    <Button
+      size={size}
+      variant={variant}
+      onClick={handleClick}
+      disabled={isEnding}
+      className={cn(
+        // Base overrides — softer red, rounded pill, smooth hover
+        'rounded-full border border-red-300 bg-red-50 text-red-600',
+        'hover:bg-red-500 hover:text-white hover:border-red-500',
+        'active:scale-95 transition-all duration-150 shadow-sm',
+        'disabled:opacity-60 disabled:cursor-not-allowed',
+        'font-semibold text-sm tracking-wide gap-2',
+        className,
+      )}
+      {...props}
+    >
+      {/* Icon */}
+      <span className="flex items-center justify-center">
+        {icon ?? <PhoneOffIcon className="size-4" />}
+      </span>
+
+      {/* Label */}
+      {isEnding ? (
+        <span className={cn(size === 'icon' && 'sr-only')}>
+          Ending session…
+        </span>
+      ) : (
+        <span className={cn(size === 'icon' && 'sr-only')}>
+          {children ?? 'End Session'}
+        </span>
+      )}
     </Button>
   );
 }
