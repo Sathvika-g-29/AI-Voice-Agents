@@ -1,3 +1,4 @@
+import json
 import logging
 
 from dotenv import load_dotenv
@@ -8,28 +9,68 @@ from livekit.agents import (
     AgentSession,
     JobContext,
     JobProcess,
+    RunContext,
     cli,
+    function_tool,
     inference,
     tokenize,
     room_io,
 )
-from livekit.plugins import murf, silero, google, deepgram, noise_cancellation
+from livekit.plugins import (
+    murf,
+    silero,
+    google,
+    deepgram,
+    noise_cancellation,
+)
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
+
+from memory import init_db, lookup_user, save_user
 
 logger = logging.getLogger("agent")
 
 load_dotenv(".env.local")
 
+# Initialize the SQLite database
+init_db()
+
+
 # Change this prompt to change what your voice agent does.
+#
 # See README.md for example prompts (customer support, language tutor, receptionist).
 
 SYSTEM_PROMPT = """IDENTITY
 You are a friendly and supportive Student Career Guide voice agent. You help students with career choices, internships, learning paths, projects, resumes, and interview preparation.
 
 OBJECTIVES
+
 1. Help students understand suitable career and learning directions.
 2. Suggest practical next steps for improving skills and preparing for opportunities.
 3. Help students create simple and realistic action plans.
+
+MEMORY
+
+You have access to caller memory tools.
+
+At the beginning of a conversation, use the lookup_caller tool when you have a reliable user ID.
+
+If the caller is already known, greet them naturally by name and use relevant saved information to make the conversation more useful.
+
+For example:
+"Welcome back, Ramesh. Last time we talked about your Python learning. How is that going?"
+
+Do not reveal private stored information unnecessarily.
+
+When you learn new information that would be useful in future conversations, ask the caller for permission before saving it.
+
+For example:
+"Would you like me to remember that you are currently learning Python?"
+
+Only call save_caller after the caller clearly gives permission.
+
+If the caller says no, do not save the information.
+
+Never claim that information was saved unless the save_caller tool successfully confirms it.
 
 KNOWLEDGE
 You can provide general guidance about careers, technical skills, projects, resumes, interviews, and internships. Do not pretend to know private information about companies, job openings, salaries, or application status unless the information is provided to you or comes from a trusted source.
@@ -57,27 +98,65 @@ Avoid complex formatting, bullet points, emojis, or symbols because your respons
 """
 
 
-
 class Assistant(Agent):
     def __init__(self) -> None:
         super().__init__(instructions=SYSTEM_PROMPT)
 
-    # To add tools, use the @function_tool decorator.
-    # Here's an example that adds a simple weather tool.
-    # You also have to add `from livekit.agents import function_tool, RunContext` to the top of this file
-    # @function_tool
-    # async def lookup_weather(self, context: RunContext, location: str):
-    #     """Use this tool to look up current weather information in the given location.
-    #
-    #     If the location is not supported by the weather service, the tool will indicate this. You must tell the user the location's weather is unavailable.
-    #
-    #     Args:
-    #         location: The location to look up weather information for (e.g. city name)
-    #     """
-    #
-    #     logger.info(f"Looking up weather for {location}")
-    #
-    #     return "sunny with a temperature of 70 degrees."
+    @function_tool
+    async def lookup_caller(
+        self,
+        context: RunContext,
+        user_id: str,
+    ):
+        """Look up a caller's saved information using their user ID."""
+
+        logger.info("Looking up caller: %s", user_id)
+
+        user = lookup_user(user_id)
+
+        if user is None:
+            return {
+                "found": False,
+                "message": "No saved caller information was found.",
+            }
+
+        return {
+            "found": True,
+            "user": user,
+        }
+
+    @function_tool
+    async def save_caller(
+        self,
+        context: RunContext,
+        user_id: str,
+        name: str,
+        language_preference: str = "",
+        facts: str = "{}",
+    ):
+        """Save caller information after the caller has given permission."""
+
+        logger.info("Saving caller information for: %s", user_id)
+
+        try:
+            facts_dict = json.loads(facts)
+        except json.JSONDecodeError:
+            return {
+                "success": False,
+                "message": "The facts must be valid JSON.",
+            }
+
+        save_user(
+            user_id=user_id,
+            name=name,
+            language_preference=language_preference,
+            facts=facts_dict,
+        )
+
+        return {
+            "success": True,
+            "message": "Caller information has been saved.",
+        }
 
 
 server = AgentServer()
@@ -98,53 +177,42 @@ async def my_agent(ctx: JobContext):
         "room": ctx.room.name,
     }
 
-    # Set up a voice AI pipeline using Murf Falcon, Gemini, Deepgram, and the LiveKit turn detector
+    # Set up a voice AI pipeline using Murf Falcon, Gemini, Deepgram,
+    # and the LiveKit turn detector
     session = AgentSession(
-        # Speech-to-text (STT) is your agent's ears, turning the user's speech into text that the LLM can understand
-        # See all available models at https://docs.livekit.io/agents/models/stt/
-        stt=deepgram.STT(model="nova-3"),
-        # A Large Language Model (LLM) is your agent's brain, processing user input and generating a response
-        # See all available models at https://docs.livekit.io/agents/models/llm/
+        # Speech-to-text
+        stt=deepgram.STT(
+            model="nova-3",
+        ),
+
+        # Large Language Model
         llm=google.LLM(
-                model="gemini-3.5-flash-lite",
-            ),
-        # Text-to-speech (TTS) is your agent's voice, turning the LLM's text into speech that the user can hear
-        # See all available models as well as voice selections at https://docs.livekit.io/agents/models/tts/
+            model="gemini-3.5-flash-lite",
+        ),
+
+        # Text-to-speech using Murf Falcon
         tts=murf.TTS(
-                voice="Anisha", 
-                locale="en-IN",
-                style="Conversation",
-                tokenizer=tokenize.basic.SentenceTokenizer(min_sentence_len=2),
-                text_pacing=True
+            voice="Anisha",
+            locale="en-IN",
+            style="Conversation",
+            tokenizer=tokenize.basic.SentenceTokenizer(
+                min_sentence_len=2
             ),
-        # VAD and turn detection are used to determine when the user is speaking and when the agent should respond
-        # See more at https://docs.livekit.io/agents/build/turns
+            text_pacing=True,
+        ),
+
+        # Turn detection
         turn_detection=MultilingualModel(),
+
+        # Voice activity detection
         vad=ctx.proc.userdata["vad"],
-        # allow the LLM to generate a response while waiting for the end of turn
-        # See more at https://docs.livekit.io/agents/build/audio/#preemptive-generation
+
+        # Allow the LLM to generate a response while waiting
+        # for the end of the user's turn
         preemptive_generation=True,
     )
 
-    # To use a realtime model instead of a voice pipeline, use the following session setup instead.
-    # (Note: This is for the OpenAI Realtime API. For other providers, see https://docs.livekit.io/agents/models/realtime/))
-    # 1. Install livekit-agents[openai]
-    # 2. Set OPENAI_API_KEY in .env.local
-    # 3. Add `from livekit.plugins import openai` to the top of this file
-    # 4. Use the following session setup instead of the version above
-    # session = AgentSession(
-    #     llm=openai.realtime.RealtimeModel(voice="marin")
-    # )
-
-    # # Add a virtual avatar to the session, if desired
-    # # For other providers, see https://docs.livekit.io/agents/models/avatar/
-    # avatar = hedra.AvatarSession(
-    #   avatar_id="...",  # See https://docs.livekit.io/agents/models/avatar/plugins/hedra
-    # )
-    # # Start the avatar and wait for it to join
-    # await avatar.start(session, room=ctx.room)
-
-    # Start the session, which initializes the voice pipeline and warms up the models
+    # Start the session
     await session.start(
         agent=Assistant(),
         room=ctx.room,
