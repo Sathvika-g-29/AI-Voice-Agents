@@ -1,278 +1,218 @@
-# Voice Agent Starter — Powered by Murf Falcon
+# Day 5 — Tool Calling with Local Learning Data
 
-Build a production voice AI agent in 5 minutes. Powered by the fastest TTS on the market - swap the system prompt to build anything from customer support to language tutors.
+## Overview
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [![Murf Falcon](https://img.shields.io/badge/TTS-Murf%20Falcon-6366F1)](https://murf.ai/api/docs/text-to-speech/streaming) [![LiveKit](https://img.shields.io/badge/Transport-LiveKit-002cf2)](https://docs.livekit.io) [![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?logo=typescript&logoColor=white)](https://www.typescriptlang.org/) [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](https://www.python.org/)
+On Day 5 of the **10 Days of Voice Agents** challenge, I taught my Student Career Guide voice agent how to use a function tool to retrieve domain-specific learning recommendations.
 
----
+Instead of relying only on the LLM's generated knowledge, the agent can call a dedicated learning-path tool when a student asks what they should learn next based on their current skill and career goal.
 
-## Why Murf Falcon
+The project uses **Murf Falcon** for text-to-speech and **LiveKit Agents** for the voice agent pipeline.
 
-- **55ms model latency** - fastest production TTS
-- **130ms time-to-first-audio** across 10+ global regions
-- **$0.01/1000 characters** - up to 10x cheaper than alternatives
-- **150+ voices** across 35+ languages
-- **99.38% pronunciation accuracy**
+## What I Built
 
----
+The agent can now:
+
+* Understand a student's current technical skill.
+* Understand their target career goal.
+* Decide when a learning-path lookup is required.
+* Call the `get_learning_recommendation` function tool.
+* Retrieve a learning path from a local dataset.
+* Speak the result naturally through the voice interface.
+* Handle unsupported skill and career combinations without inventing information.
 
 ## Architecture
 
-```mermaid
-flowchart LR
-    A[🎙️ User speaks] -->|audio| B[Deepgram STT]
-    B -->|text| C[LLM]
-    C -->|response text| D[Murf Falcon TTS]
-    D -->|audio| E[LiveKit]
-    E -->|stream| F[🔊 User hears]
-
-    style A fill:#444441,stroke:#888780,color:#fff
-    style B fill:#185FA5,stroke:#85B7EB,color:#fff
-    style C fill:#534AB7,stroke:#AFA9EC,color:#fff
-    style D fill:#0F6E56,stroke:#5DCAA5,color:#fff
-    style E fill:#D85A30,stroke:#F0997B,color:#fff
-    style F fill:#444441,stroke:#888780,color:#fff
+```text
+User speaks
+     ↓
+Deepgram STT
+     ↓
+Gemini LLM
+     ↓
+Agent decides whether a tool is needed
+     ↓
+get_learning_recommendation()
+     ↓
+Local Learning Dataset
+     ↓
+Learning Path
+     ↓
+Gemini generates a natural response
+     ↓
+Murf Falcon TTS
+     ↓
+User hears the response
 ```
 
----
+## Day 5 Tool
 
-## Quickstart
+The main tool is:
 
-### Prerequisites
-
-- **Python** 3.10+
-- **[uv](https://docs.astral.sh/uv/)** - fast Python package manager
-  ```bash
-  # macOS/Linux
-  curl -LsSf https://astral.sh/uv/install.sh | sh
-  # Windows (PowerShell)
-  powershell -ExecutionPolicy ByPass -c "irm https://astral.sh/uv/install.ps1 | iex"
-  ```
-- **Node.js** 18+
-- **pnpm** — fast Node package manager
-  ```bash
-  npm install -g pnpm
-  ```
-- A [LiveKit](https://cloud.livekit.io/) project (free tier available)
-
-### Step 1: Clone the repo
-
-```bash
-git clone https://github.com/murf-ai/murf-livekit-starter.git
-cd murf-livekit-starter
+```python
+get_learning_recommendation(current_skill, goal)
 ```
 
-### Step 2: Set up environment variables
+The tool accepts:
 
-Create `.env.local` in both `backend/` and `frontend/` (copy from `.env.example` in each). You need:
+* `current_skill` — the student's current skill, such as Python.
+* `goal` — the student's target career, such as AI Engineer.
 
-| Variable                               | Where to get it                                        | Required |
-| -------------------------------------- | ------------------------------------------------------ | -------- |
-| `LIVEKIT_URL`                          | LiveKit Cloud dashboard                                | Yes      |
-| `LIVEKIT_API_KEY`                      | LiveKit Cloud dashboard                                | Yes      |
-| `LIVEKIT_API_SECRET`                   | LiveKit Cloud dashboard                                | Yes      |
-| `MURF_API_KEY`                         | [murf.ai/api/dashboard](https://murf.ai/api/dashboard) | Yes      |
-| `DEEPGRAM_API_KEY`                     | [deepgram.com](https://deepgram.com)                   | Yes      |
-| `GOOGLE_API_KEY` (or `OPENAI_API_KEY`) | Depends on LLM choice                                  | Yes      |
+For example:
 
-### Step 3: Install backend dependencies
-
-```bash
-cd backend
-uv sync
-uv run python src/agent.py download-files
+```text
+Current skill: Python
+Career goal: AI Engineer
 ```
 
-### Step 4: Install frontend dependencies
+The tool returns:
 
-```bash
-cd frontend
-pnpm install
+```text
+Python fundamentals
+NumPy and Pandas
+Machine Learning fundamentals
+scikit-learn
+Deep Learning with PyTorch
+LLMs and RAG
+LangChain and LangGraph
 ```
 
-### Step 5: Run it
+The agent then converts this information into a conversational spoken response.
 
-**Option A - All-in-one (from repo root):**
+## Data Source
 
-```bash
-# macOS/Linux
-chmod +x start_app.sh
-./start_app.sh
+For Day 5, I am using a **hand-built local dataset** rather than a live internet API.
 
-# Windows (PowerShell)
-.\start_app.ps1
+This was an intentional choice because the challenge allows a local dataset when a suitable external data source is not available.
+
+The dataset currently contains learning paths for selected combinations of technical skills and career goals.
+
+The local data is stored in:
+
+```text
+src/learning_data.py
 ```
 
-**Option B - Separate terminals:**
+The agent does not pretend that this information is live or continuously updated.
 
-```bash
-# Terminal 1 — LiveKit Server
-livekit-server --dev
+## Why Use a Tool?
 
-# Terminal 2 — Backend agent
-cd backend && uv run python src/agent.py dev
+Without the tool, the LLM could generate a learning path entirely from its own knowledge.
 
-# Terminal 3 — Frontend
-cd frontend && pnpm dev
+With the tool, the application explicitly separates:
+
+```text
+Reasoning
+    +
+Domain data
 ```
 
-Then open **http://localhost:3000** in your browser.
+The LLM decides when the domain data is required, while the tool retrieves the actual learning path.
 
-You should now see the voice agent UI. Click **Start talking**, allow microphone access, and speak — the agent will respond with Murf Falcon TTS. Ensure your backend and (if using Option B) LiveKit server are running.
+This also gives the application a controlled failure path.
 
----
+## Failure Handling
 
-## Deploy
+If the requested skill and career combination is not available in the dataset, the tool returns a safe response instead of inventing a recommendation.
 
-Want to deploy this beyond localhost? You'll need to deploy **two services**: the backend agent and the frontend. Both must use the same LiveKit project.
+Example:
 
-> This is a two-service app — the backend agent and the frontend UI deploy separately. You'll need both running and connected to the same LiveKit project.
-
-### Backend (Python agent) — Deploy to Railway
-
-[![Deploy on Railway](https://railway.com/button.svg)](https://railway.com/deploy/tIVCF1?referralCode=cNjn2P&utm_medium=integration&utm_source=template&utm_campaign=generic)
-
-Set these environment variables in Railway:
-
-- `MURF_API_KEY`
-- `DEEPGRAM_API_KEY`
-- `GOOGLE_API_KEY` or `OPENAI_API_KEY`
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-
-The backend runs as a long-lived Python process that connects to LiveKit as an agent. Railway handles this well.
-
-### Frontend (Next.js) — Deploy to Vercel
-
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/murf-ai/murf-livekit-starter&root-directory=frontend&env=LIVEKIT_URL,LIVEKIT_API_KEY,LIVEKIT_API_SECRET&project-name=murf-voice-agent&repository-name=murf-voice-agent)
-
-Set these environment variables in Vercel:
-
-- `LIVEKIT_URL`
-- `LIVEKIT_API_KEY`
-- `LIVEKIT_API_SECRET`
-- `AGENT_NAME` (optional — for explicit agent dispatch)
-
-The frontend is a standard Next.js app. Point it at the same LiveKit instance your backend agent is connected to.
-
-### Connecting them
-
-The frontend and backend don't call each other directly — they both connect to **LiveKit**, which handles the real-time audio transport.
-
-1. Use the **same** `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` on both Railway and Vercel
-2. Set `AGENT_NAME=my-agent` on Vercel — this matches the `agent_name="my-agent"` registered in `backend/src/agent.py`
-3. Verify: Railway logs should show the agent connected to LiveKit. Open your Vercel URL, click **Start talking** — the agent should respond
-
-If the agent doesn't connect, double-check that both services point to the same LiveKit project and that the backend is running (check Railway logs).
-
----
-
-## Change the Use Case
-
-The default system prompt makes this a **customer support agent**. You can change the agent’s behavior by editing the prompt.
-
-**Where the prompt lives:** `backend/src/agent.py`- the `SYSTEM_PROMPT` constant (near the top of the file, after the imports). Change that string to change what your voice agent does.
-
-### Example prompts (copy-paste)
-
-**Customer Support (default):**
-
-```
-You are a friendly and efficient customer support agent for a tech company. Help users with account issues, billing questions, and product troubleshooting. Be concise, empathetic, and solution-oriented. If you don't know something, say so honestly and offer to escalate.
+```text
+I couldn't find a learning path for that combination
+in my current learning dataset. I don't want to invent
+a recommendation.
 ```
 
-**Language Tutor:**
+This prevents the voice agent from presenting unsupported information as if it came from the application's data source.
 
-```
-You are a patient and encouraging language tutor helping the user practice conversational Spanish. Speak primarily in Spanish but switch to English to explain grammar or vocabulary when needed. Correct mistakes gently and suggest better phrasing. Keep conversations natural and fun.
-```
+## Example Conversation
 
-**AI Receptionist:**
+### Successful lookup
 
-```
-You are a professional receptionist for a medical clinic. Help callers schedule appointments, answer questions about office hours and services, and take messages for doctors. Be warm but efficient. Ask for the caller's name and reason for calling upfront.
-```
+**User:**
 
-See the Configuration section below for voice, STT, and LLM options.
+> I know Python and I want to become an AI Engineer. What should I learn next?
 
----
+**Agent:**
 
-## Configuration
+> For someone with Python skills aiming to become an AI Engineer, I'd recommend starting with Python fundamentals, then NumPy and Pandas, followed by machine learning fundamentals, scikit-learn, deep learning with PyTorch, LLMs and RAG, and finally LangChain and LangGraph.
 
-### Murf voice
+### Unsupported lookup
 
-Edit the `tts=murf.TTS(...)` call in `backend/src/agent.py`. Set the `voice` argument to any Murf voice ID. Examples:
+**User:**
 
-- `Anisha` — Indian English (female, default in this starter)
-- `Pooja` — Indian English (female)
-- `Samar` — Indian English (male)
-- `Amara` — US English (female)
-- `Gordon` — US English (male)
-- `Hazel` — UK English (female)
-- `Bertie` — UK English (male)
+> I know COBOL and I want to become a Quantum Engineer. What should I learn?
 
-Browse all voices: [Murf Voice Library](https://murf.ai/api/docs/voices-styles/voice-library).
+**Agent:**
 
-### STT provider
+> I couldn't find a learning path for that combination in my current learning dataset. I don't want to invent a recommendation.
 
-STT is configured in `backend/src/agent.py` in the `AgentSession(stt=...)` call. The default is Deepgram (`deepgram.STT(model="nova-3")`). You can swap to another LiveKit-compatible STT plugin if needed.
+## Tool Description
 
-### LLM (Gemini vs OpenAI)
+The tool description tells the LLM when it should be used:
 
-- **Gemini (default):** Set `GOOGLE_API_KEY` and use `llm=google.LLM(model="gemini-3.5-flash-lite")` in `agent.py`.
-- **OpenAI:** Set `OPENAI_API_KEY`, add the OpenAI plugin, and use the corresponding `llm=openai.LLM(...)` in `agent.py`.
-
-### Audio format
-
-Murf Falcon and LiveKit handle audio format internally. For advanced options, see [Murf API docs](https://murf.ai/api/docs) and [LiveKit docs](https://docs.livekit.io).
-
----
-
-## Project Structure
-
-```
-murf-livekit-starter/
-├── backend/                 # Python voice agent (LiveKit Agents + Murf Falcon)
-│   ├── src/
-│   │   └── agent.py         # Agent entrypoint, pipeline (STT/LLM/TTS), system prompt
-│   ├── tests/               # Agent tests
-│   ├── .env.example         # Backend env template
-│   ├── pyproject.toml       # Python deps (uv)
-│   └── railway.toml         # Railway deploy config
-├── frontend/                # Next.js UI for voice sessions
-│   ├── app/
-│   │   ├── page.tsx         # Main page
-│   │   └── api/token/       # LiveKit token endpoint (dev)
-│   ├── components/          # UI (agents-ui, app config, theme)
-│   ├── app-config.ts        # Branding, title, button text, accent
-│   ├── .env.example         # Frontend env template
-│   └── package.json         # Node deps (pnpm)
-├── start_app.sh             # Start LiveKit + backend + frontend (macOS/Linux)
-├── start_app.ps1            # Start LiveKit + backend + frontend (Windows)
-├── README.md                # This file
+```text
+Use this tool when a student asks what they should learn next
+or asks for a learning path based on their current skill and goal.
 ```
 
-For deeper documentation on each part, see:
+This is important because the model uses the tool description to determine when a function call is appropriate.
 
-- [Backend Documentation](./backend/README.md) — agent pipeline, voice/LLM/STT configuration, testing, deployment
-- [Frontend Documentation](./frontend/README.md) — UI customization, visualizers, theming, component architecture
+## Technologies
 
----
+* Python
+* LiveKit Agents
+* Gemini
+* Deepgram
+* Murf Falcon TTS
+* Silero VAD
+* SQLite for persistent caller memory
+* Local learning dataset
 
-## Links
+## Day 4 + Day 5 Progress
 
-- [Murf API Docs](https://murf.ai/api/docs)
-- [Murf Voice Library](https://murf.ai/api/docs/voices-styles/voice-library)
-- [LiveKit Docs](https://docs.livekit.io)
-- [Deepgram Docs](https://developers.deepgram.com)
-- [Murf Falcon Benchmarks](https://murf.ai/falcon/benchmarks)
-- [TTS Latency Benchmarker](https://github.com/sahilsgupta/tts-latency-benchmarker) — run your own p50/p95 tests across providers
-- [Murf Discord](https://discord.gg/FbKAy96Sz7)
-- [Murf Startup Incubator](https://murf.ai/api) — 50M free characters for startups
+### Day 4 — Memory
 
----
+The agent learned how to remember information about returning callers.
 
-## License
+It can:
 
-MIT
+* Look up a caller.
+* Store information after receiving permission.
+* Remember useful career and learning facts.
+* Reuse saved information in future conversations.
+
+Memory is stored locally using SQLite.
+
+### Day 5 — Tool Calling
+
+The agent can now use a dedicated function tool to retrieve learning recommendations.
+
+This moves the agent beyond simply generating responses and gives it access to application-controlled domain data.
+
+## Current Limitations
+
+The learning data is currently local and manually maintained.
+
+It is **not live data** and does not automatically reflect changes in courses, technologies, job markets, or external learning resources.
+
+A future version could replace or supplement the local dataset with an external API or another live data source.
+
+## Day 5 Completion Checklist
+
+* [x] Define a domain-specific tool
+* [x] Create a local domain dataset
+* [x] Write a clear tool description
+* [x] Connect the tool to the voice agent
+* [x] Return tool results to the LLM
+* [x] Speak the result naturally
+* [x] Handle unsupported requests safely
+* [x] Document that the data is local
+* [x] Record the Day 5 demonstration video
+* [x] Publish the Day 5 LinkedIn post
+* [x] Submit the LinkedIn post link through Discord
+
+## Challenge
+
+This project is being built as part of **10 Days of Voice Agents** and the **Voice for Bharat** challenge.
+
+The goal is to progressively build a practical voice agent by adding capabilities such as memory, tools, domain knowledge, and safe failure handling.
