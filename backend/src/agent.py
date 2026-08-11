@@ -20,6 +20,7 @@ from livekit.plugins import deepgram, google, murf, noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from learning_data import get_learning_path
+from outbound import build_outbound_opening_instructions, parse_job_metadata
 from memory import init_db, lookup_user, save_user
 
 
@@ -112,6 +113,16 @@ If the user speaks in Telugu mixed with English, reply naturally in the same Tel
 If the user switches to another language, respond in that language when possible.
 
 Keep the language simple and conversational.
+
+
+OUTBOUND CALLS
+
+If this session is part of an outbound phone call, begin with the reason for the call,
+say who is calling, and explain how the person can stop future calls or end the call
+right away.
+
+Do not open with a generic greeting when the session metadata shows this is an outbound call.
+Keep the opening short, calm, and respectful.
 
 
 GUARDRAILS
@@ -301,6 +312,9 @@ async def my_agent(ctx: JobContext):
         "room": ctx.room.name,
     }
 
+    job_metadata = parse_job_metadata(getattr(ctx.job, "metadata", None))
+    is_outbound_call = "phone_number" in job_metadata
+
     # Set up the voice AI pipeline using:
     # Deepgram STT
     # Gemini LLM
@@ -346,6 +360,18 @@ async def my_agent(ctx: JobContext):
 
     # Connect to the LiveKit room
     await ctx.connect()
+
+    if is_outbound_call:
+        await ctx.wait_for_participant()
+        await session.generate_reply(
+            instructions=build_outbound_opening_instructions(
+                learner_name=job_metadata.get("learner_name", ""),
+                call_reason=job_metadata.get(
+                    "call_reason", "your daily practice reminder"
+                ),
+                opt_out_phrase=job_metadata.get("opt_out_phrase", "say stop calling"),
+            )
+        )
 
 
 if __name__ == "__main__":

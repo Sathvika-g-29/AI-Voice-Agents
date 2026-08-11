@@ -188,6 +188,31 @@ Tests are in [`tests/test_agent.py`](tests/test_agent.py) and use LLM-as-judge e
 
 To run tests in CI, you'll need to add `LIVEKIT_URL`, `LIVEKIT_API_KEY`, and `LIVEKIT_API_SECRET` as repository secrets.
 
+## Day 6: Outbound calls
+
+This backend now includes a small outbound calling utility for the learning track.
+
+Use it to place a real phone call through LiveKit Telephony or a SIP trunk:
+
+```bash
+uv run python src/outbound_call.py --phone-number +91XXXXXXXXXX --learner-name Asha
+```
+
+If `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, and `TWILIO_FROM_NUMBER` are set, the
+command uses Twilio and places a trial call to the verified destination number.
+For Twilio trial calls, you also need `TWILIO_TWIML_URL`, which can be a TwiML Bin or
+Twilio Function that returns the spoken opening. Otherwise it falls back to the LiveKit
+SIP path.
+
+You need one of these outbound setups in `.env.local`:
+
+- `TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`, `TWILIO_FROM_NUMBER`, and `TWILIO_TWIML_URL` for Twilio trial or paid voice calls
+- `SIP_OUTBOUND_TRUNK_ID` or `LIVEKIT_SIP_TRUNK_ID` for a preconfigured LiveKit trunk
+- `SIP_TRUNK_HOSTNAME` plus optional `SIP_AUTH_USERNAME` and `SIP_AUTH_PASSWORD` for inline SIP auth
+- `SIP_FROM_NUMBER` for the caller ID when your trunk requires it
+
+The outbound call uses the same `my-agent` LiveKit worker and opens with a short spoken intro that says who is calling, why, and how to opt out.
+
 ## Deployment
 
 ### Railway
