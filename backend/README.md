@@ -213,6 +213,32 @@ You need one of these outbound setups in `.env.local`:
 
 The outbound call uses the same `my-agent` LiveKit worker and opens with a short spoken intro that says who is calling, why, and how to opt out.
 
+## Day 7: Human help
+
+The backend now includes a human-help request tool for situations where the agent should ask a person instead of trying to solve everything alone.
+
+Use it when:
+
+* the learner is upset, overwhelmed, or asks for a teacher or human helper
+* the learning-path lookup is unavailable and the caller needs a human follow-up
+
+Requests are stored locally in SQLite and mirrored to a small dashboard file that the frontend can display.
+
+The dashboard page lives at:
+
+```text
+frontend/app/help-requests/page.tsx
+```
+
+The request summary only includes the useful details:
+
+* who needs help
+* what happened
+* what the agent already checked
+* how urgent it is
+* the caller's language
+* the preferred follow-up method
+
 ## Deployment
 
 ### Railway

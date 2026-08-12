@@ -10,6 +10,8 @@ KMS
 *.egg-info
 .pytest_cache
 .ruff_cache
+human_help.db
+human_help_requests.json
 
 # Claude Code
 .claude/settings.local.json

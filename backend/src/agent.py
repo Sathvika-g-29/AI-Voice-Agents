@@ -20,6 +20,7 @@ from livekit.plugins import deepgram, google, murf, noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from learning_data import get_learning_path
+from human_help import create_human_help_request, init_db as init_human_help_db
 from outbound import build_outbound_opening_instructions, parse_job_metadata
 from memory import init_db, lookup_user, save_user
 
@@ -33,6 +34,7 @@ load_dotenv(BACKEND_ROOT / ".env.local")
 
 # Initialize SQLite database
 init_db()
+init_human_help_db()
 
 
 SYSTEM_PROMPT = """IDENTITY
@@ -95,6 +97,33 @@ Do not invent a learning path when the tool says that the requested combination 
 If the tool cannot find a recommendation, clearly tell the student that the current learning dataset does not contain that combination.
 
 Do not pretend that the tool returned information that it did not return.
+
+
+HUMAN HELP
+
+Some requests need a human helper instead of a pure agent answer.
+
+Use the human-help tool when the learner is upset, overwhelmed, or asks for a teacher
+or person, or when a learning-path lookup is unavailable and the caller needs follow-up.
+
+Before sharing anything, explain that you want to send a short summary to a human helper
+and ask for permission.
+
+Only create a human-help request after the caller clearly says yes.
+
+When you do create a request, keep the summary short and only include:
+
+who needs help,
+what happened,
+what the agent already checked,
+how urgent it is,
+the caller's language,
+and the preferred follow-up method.
+
+Do not include passwords, OTPs, PINs, account numbers, or the full conversation.
+
+After the request is created, give the caller a reference ID and explain that a human
+will review it when available.
 
 
 KNOWLEDGE
@@ -291,6 +320,61 @@ class Assistant(Agent):
             {
                 "success": True,
                 "message": "Caller information has been saved.",
+            }
+        )
+
+    @function_tool
+    async def create_human_help_request(
+        self,
+        context: RunContext,
+        requester_name: str,
+        issue: str,
+        what_checked: str,
+        permission_granted: bool = False,
+        urgency: str = "medium",
+        language: str = "",
+        follow_up_method: str = "",
+    ) -> str:
+        """Create a short request for a human helper after the caller agrees.
+
+        Use this when the learner is upset, wants a teacher or human, or the
+        requested learning path is unavailable and a human follow-up is needed.
+        Ask for permission before calling this tool.
+        """
+
+        if not permission_granted:
+            return json.dumps(
+                {
+                    "success": False,
+                    "message": "Permission is required before sharing the summary.",
+                }
+            )
+
+        try:
+            human_help_request = create_human_help_request(
+                requester_name=requester_name,
+                issue=issue,
+                what_checked=what_checked,
+                urgency=urgency,
+                language=language,
+                follow_up_method=follow_up_method,
+                permission_granted=permission_granted,
+            )
+        except ValueError as exc:
+            return json.dumps(
+                {
+                    "success": False,
+                    "message": str(exc),
+                }
+            )
+
+        return json.dumps(
+            {
+                "success": True,
+                "request_id": human_help_request.request_id,
+                "status": human_help_request.status,
+                "summary": human_help_request.summary,
+                "next_step": "A human helper will review this request when available.",
             }
         )
 

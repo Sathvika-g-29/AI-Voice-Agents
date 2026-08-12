@@ -189,6 +189,40 @@ The agent can now use a dedicated function tool to retrieve learning recommendat
 
 This moves the agent beyond simply generating responses and gives it access to application-controlled domain data.
 
+### Day 6 â€” Outbound Calls
+
+The agent can now place outbound practice calls instead of only waiting for inbound browser sessions.
+
+The outbound flow includes:
+
+* a trial-friendly Twilio path for calling a verified number
+* a LiveKit SIP fallback for testing when Twilio is not configured
+* a spoken opening that says who is calling, why, and how to stop future calls
+
+The outbound helpers live in:
+
+```text
+backend/src/outbound.py
+backend/src/outbound_call.py
+```
+
+### Day 7 â€” Human Help
+
+The agent can now stop and ask for a human helper when the request needs a person.
+
+The human-help flow includes:
+
+* asking for permission before sharing a summary
+* creating a short request with only the useful details
+* storing the request locally in SQLite
+* showing open requests in a small dashboard page
+
+The dashboard lives at:
+
+```text
+frontend/app/help-requests/page.tsx
+```
+
 ## Current Limitations
 
 The learning data is currently local and manually maintained.
@@ -196,6 +230,10 @@ The learning data is currently local and manually maintained.
 It is **not live data** and does not automatically reflect changes in courses, technologies, job markets, or external learning resources.
 
 A future version could replace or supplement the local dataset with an external API or another live data source.
+
+The outbound call path currently depends on either Twilio trial credentials or SIP trunk details.
+
+The human-help dashboard is local to this repo and is meant for development and demonstration.
 
 ## Day 5 Completion Checklist
 
@@ -210,6 +248,25 @@ A future version could replace or supplement the local dataset with an external 
 * [x] Record the Day 5 demonstration video
 * [x] Publish the Day 5 LinkedIn post
 * [x] Submit the LinkedIn post link through Discord
+
+## Day 6 Completion Checklist
+
+* [x] Add outbound call support
+* [x] Trigger a real outbound call to a number you control
+* [x] Open the call with who, why, and opt-out language
+* [x] Record the Day 6 demonstration video
+* [x] Publish the Day 6 LinkedIn post
+* [x] Push the Day 6 changes to GitHub
+
+## Day 7 Completion Checklist
+
+* [x] Add a human-help request tool
+* [x] Ask for permission before sharing a summary
+* [x] Store requests locally in SQLite
+* [x] Show open requests in a dashboard page
+* [x] Record the Day 7 demonstration video
+* [x] Publish the Day 7 LinkedIn post
+* [x] Submit the Day 7 form link
 
 ## Challenge
 
