@@ -239,6 +239,42 @@ The request summary only includes the useful details:
 * the caller's language
 * the preferred follow-up method
 
+## Day 8: Call analytics
+
+The backend now records call outcomes so the project can show a simple performance dashboard.
+
+For this agent, a successful call means the conversation reached a useful completion:
+
+* the student received a learning recommendation, or
+* the agent created a human-help request after permission was granted
+
+Every call writes a local analytics record with only safe metadata. The export does not include
+transcripts, passwords, OTPs, PINs, account numbers, or other private caller details.
+
+The dashboard page lives at:
+
+```text
+frontend/app/call-analytics/page.tsx
+```
+
+You can also open the friendly alias at:
+
+```text
+http://localhost:3000/dashboard
+```
+
+The analytics export is written to:
+
+```text
+backend/call_analytics.json
+```
+
+The SQLite store is written to:
+
+```text
+backend/call_analytics.db
+```
+
 ## Deployment
 
 ### Railway

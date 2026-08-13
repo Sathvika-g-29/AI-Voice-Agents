@@ -223,6 +223,33 @@ The dashboard lives at:
 frontend/app/help-requests/page.tsx
 ```
 
+### Day 8 â€” Call Analytics
+
+The agent now records call outcomes and shows a simple dashboard with live counts.
+
+For this project, a successful call means one of two things happened:
+
+* the student received a learning recommendation
+* the agent created a human-help request after permission was granted
+
+The analytics flow includes:
+
+* recording every browser or SIP call outcome locally
+* keeping only safe metadata in the dashboard export
+* showing total calls, successful calls, and failed calls on a web page
+
+The dashboard lives at:
+
+```text
+frontend/app/call-analytics/page.tsx
+```
+
+You can also visit the alias:
+
+```text
+http://localhost:3000/dashboard
+```
+
 ## Current Limitations
 
 The learning data is currently local and manually maintained.
@@ -234,6 +261,8 @@ A future version could replace or supplement the local dataset with an external 
 The outbound call path currently depends on either Twilio trial credentials or SIP trunk details.
 
 The human-help dashboard is local to this repo and is meant for development and demonstration.
+
+The call analytics dashboard is also local and intentionally shows only safe, non-sensitive metadata.
 
 ## Day 5 Completion Checklist
 
@@ -267,6 +296,17 @@ The human-help dashboard is local to this repo and is meant for development and 
 * [x] Record the Day 7 demonstration video
 * [x] Publish the Day 7 LinkedIn post
 * [x] Submit the Day 7 form link
+
+## Day 8 Completion Checklist
+
+* [x] Define what a successful call means
+* [x] Record outcomes from real browser or SIP calls
+* [x] Build a simple dashboard for total, successful, and failed calls
+* [x] Protect caller information on the dashboard
+* [x] Test the success path and verify the counts increase
+* [ ] Record the Day 8 demonstration video
+* [ ] Publish the Day 8 LinkedIn post
+* [ ] Submit the Day 8 form link
 
 ## Challenge
 

@@ -12,6 +12,8 @@ KMS
 .ruff_cache
 human_help.db
 human_help_requests.json
+call_analytics.db
+call_analytics.json
 
 # Claude Code
 .claude/settings.local.json

@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import Link from 'next/link';
 import { TokenSource } from 'livekit-client';
 import { useSession } from '@livekit/components-react';
 import { WarningIcon } from '@phosphor-icons/react/dist/ssr';
@@ -98,7 +99,22 @@ export function App({ appConfig }: AppProps) {
       {/* Microphone permission error banner */}
       <MicPermissionBanner />
 
-      <main className="min-h-svh w-full bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+      <div className="fixed right-4 top-4 z-50 hidden gap-2 md:flex">
+        <Link
+          href="/call-analytics"
+          className="rounded-full border border-fuchsia-400/25 bg-slate-950/80 px-4 py-2 text-xs font-semibold text-fuchsia-100 shadow-lg shadow-fuchsia-950/20 backdrop-blur hover:border-fuchsia-300/40 hover:bg-slate-900"
+        >
+          Dashboard
+        </Link>
+        <Link
+          href="/help-requests"
+          className="rounded-full border border-fuchsia-400/25 bg-slate-950/80 px-4 py-2 text-xs font-semibold text-fuchsia-100 shadow-lg shadow-fuchsia-950/20 backdrop-blur hover:border-fuchsia-300/40 hover:bg-slate-900"
+        >
+          Human Help
+        </Link>
+      </div>
+
+      <main className="min-h-svh w-full bg-[radial-gradient(circle_at_top,_rgba(236,72,153,0.22),_transparent_28%),radial-gradient(circle_at_80%_20%,_rgba(168,85,247,0.18),_transparent_24%),linear-gradient(135deg,_#050816_0%,_#090417_45%,_#14081f_100%)]">
         <ViewController appConfig={appConfig} />
       </main>
 
@@ -120,9 +136,8 @@ export function App({ appConfig }: AppProps) {
         toastOptions={{
           classNames: {
             toast:
-              'rounded-xl border border-blue-100 bg-white text-blue-900 shadow-md text-sm',
-            warning:
-              'border-yellow-200 bg-yellow-50 text-yellow-900',
+              'rounded-xl border border-fuchsia-500/20 bg-slate-950/95 text-slate-100 shadow-lg shadow-fuchsia-950/20 text-sm backdrop-blur',
+            warning: 'border-amber-500/30 bg-amber-950/80 text-amber-100',
           },
         }}
       />

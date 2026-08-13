@@ -53,8 +53,8 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   logoDark: '/murf-logo-dark.svg',
 
   // Blue accent — calm, focused, matches the blue-green palette
-  accent: '#2563EB',       // blue-600
-  accentDark: '#3B82F6',   // blue-500 (slightly lighter for dark mode)
+  accent: '#C084FC',
+  accentDark: '#F472B6',
 
   // ── UI copy ─────────────────────────────────────────────────────────
   startButtonText: 'Start Learning',
@@ -62,8 +62,8 @@ export const APP_CONFIG_DEFAULTS: AppConfig = {
   // ── Audio visualizer ────────────────────────────────────────────────
   // Wave style feels natural for a voice/speech context
   audioVisualizerType: 'wave',
-  audioVisualizerColor: '#2563EB',      // blue-600 for light mode
-  audioVisualizerColorDark: '#34D399',  // emerald-400 for dark mode
+  audioVisualizerColor: '#C084FC',
+  audioVisualizerColorDark: '#F472B6',
   audioVisualizerColorShift: 0.25,
   audioVisualizerWaveLineWidth: 2.5,
 

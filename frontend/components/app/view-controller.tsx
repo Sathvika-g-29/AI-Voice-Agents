@@ -1,4 +1,5 @@
 'use client';
+
 import { useTheme } from 'next-themes';
 import { AnimatePresence, motion } from 'motion/react';
 import { useSessionContext } from '@livekit/components-react';
@@ -40,10 +41,8 @@ export function ViewController({ appConfig }: ViewControllerProps) {
   const isConnecting = connectionState === 'connecting';
 
   return (
-    <div className="relative min-h-screen w-full bg-gradient-to-br from-blue-50 via-white to-emerald-50">
+    <div className="relative min-h-screen w-full overflow-hidden bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.18),_transparent_24%),radial-gradient(circle_at_70%_15%,_rgba(168,85,247,0.16),_transparent_22%),linear-gradient(135deg,_#050816_0%,_#090417_42%,_#14081f_100%)]">
       <AnimatePresence mode="wait">
-
-        {/* Welcome view — Ready state */}
         {!isConnected && !isConnecting && (
           <MotionWelcomeView
             key="welcome"
@@ -53,19 +52,17 @@ export function ViewController({ appConfig }: ViewControllerProps) {
           />
         )}
 
-        {/* Connecting state */}
         {isConnecting && (
           <motion.div
             key="connecting"
             {...VIEW_MOTION_PROPS}
-            className="min-h-screen w-full flex flex-col items-center justify-center gap-5 text-center px-4"
+            className="min-h-screen w-full flex flex-col items-center justify-center gap-5 px-4 text-center"
           >
-            {/* Animated dots */}
-            <div className="flex gap-2 items-center">
+            <div className="flex items-center gap-2">
               {[0, 1, 2].map((i) => (
                 <motion.span
                   key={i}
-                  className="w-3 h-3 rounded-full bg-blue-500"
+                  className="h-3 w-3 rounded-full bg-fuchsia-400 shadow-[0_0_18px_rgba(244,114,182,0.6)]"
                   animate={{ scale: [1, 1.4, 1], opacity: [0.5, 1, 0.5] }}
                   transition={{
                     duration: 1,
@@ -76,16 +73,13 @@ export function ViewController({ appConfig }: ViewControllerProps) {
                 />
               ))}
             </div>
-            <p className="text-blue-800 font-semibold text-lg">
-              Connecting to your learning assistant…
+            <p className="text-lg font-semibold text-fuchsia-100">
+              Connecting to your learning assistant...
             </p>
-            <p className="text-slate-400 text-sm">
-              Please wait a moment
-            </p>
+            <p className="text-sm text-slate-400">Please wait a moment</p>
           </motion.div>
         )}
 
-        {/* Session view — Listening / Speaking states */}
         {isConnected && (
           <MotionSessionView
             key="session-view"
@@ -107,10 +101,9 @@ export function ViewController({ appConfig }: ViewControllerProps) {
             audioVisualizerRadialBarCount={appConfig.audioVisualizerRadialBarCount}
             audioVisualizerRadialRadius={appConfig.audioVisualizerRadialRadius}
             audioVisualizerWaveLineWidth={appConfig.audioVisualizerWaveLineWidth}
-            className="fixed inset-0 bg-gradient-to-br from-blue-50 via-white to-emerald-50"
+            className="fixed inset-0 bg-[radial-gradient(circle_at_top_left,_rgba(236,72,153,0.18),_transparent_24%),radial-gradient(circle_at_70%_15%,_rgba(168,85,247,0.16),_transparent_22%),linear-gradient(135deg,_#050816_0%,_#090417_42%,_#14081f_100%)]"
           />
         )}
-
       </AnimatePresence>
     </div>
   );

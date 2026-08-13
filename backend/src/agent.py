@@ -20,6 +20,7 @@ from livekit.plugins import deepgram, google, murf, noise_cancellation, silero
 from livekit.plugins.turn_detector.multilingual import MultilingualModel
 
 from learning_data import get_learning_path
+from call_analytics import init_db as init_call_analytics_db, start_call
 from human_help import create_human_help_request, init_db as init_human_help_db
 from outbound import build_outbound_opening_instructions, parse_job_metadata
 from memory import init_db, lookup_user, save_user
@@ -35,6 +36,7 @@ load_dotenv(BACKEND_ROOT / ".env.local")
 # Initialize SQLite database
 init_db()
 init_human_help_db()
+init_call_analytics_db()
 
 
 SYSTEM_PROMPT = """IDENTITY
@@ -231,6 +233,10 @@ class Assistant(Agent):
                 "I don't want to invent a recommendation."
             )
 
+        tracker = context.userdata.get("call_tracker")
+        if tracker is not None:
+            tracker.mark_success("learning recommendation delivered")
+
         return (
             f"For someone with {current_skill} skills aiming to become "
             f"a {goal}, the recommended learning path is: "
@@ -368,6 +374,10 @@ class Assistant(Agent):
                 }
             )
 
+        tracker = context.userdata.get("call_tracker")
+        if tracker is not None:
+            tracker.mark_success("human help request created")
+
         return json.dumps(
             {
                 "success": True,
@@ -445,8 +455,23 @@ async def my_agent(ctx: JobContext):
     # Connect to the LiveKit room
     await ctx.connect()
 
+    participant = await ctx.wait_for_participant()
+    channel = "sip" if "SIP" in str(participant.kind).upper() else "browser"
+    call_tracker = start_call(
+        channel=channel,
+        participant_identity=participant.identity,
+        room_name=ctx.room.name,
+    )
+    ctx.proc.userdata["call_tracker"] = call_tracker
+
+    def finalize_call(_reason=None):
+        tracker = ctx.proc.userdata.get("call_tracker")
+        if tracker is not None:
+            tracker.finish()
+
+    ctx.room.on("disconnected", finalize_call)
+
     if is_outbound_call:
-        await ctx.wait_for_participant()
         await session.generate_reply(
             instructions=build_outbound_opening_instructions(
                 learner_name=job_metadata.get("learner_name", ""),

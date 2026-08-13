@@ -35,10 +35,10 @@ const LK_TOGGLE_VARIANT_2 = [
   'data-[state=off]:border-border data-[state=off]:hover:border-foreground/12',
   'data-[state=off]:focus-visible:border-ring data-[state=off]:focus-visible:ring-foreground/12',
   'data-[state=off]:text-foreground data-[state=off]:hover:text-foreground data-[state=off]:focus:text-foreground',
-  'data-[state=on]:bg-blue-500/20 data-[state=on]:hover:bg-blue-500/30',
-  'data-[state=on]:border-blue-700/10 data-[state=on]:text-blue-700 data-[state=on]:ring-blue-700/30',
-  'data-[state=on]:focus-visible:border-blue-700/50',
-  'dark:data-[state=on]:bg-blue-500/20 dark:data-[state=on]:text-blue-300',
+  'data-[state=on]:bg-fuchsia-500/15 data-[state=on]:hover:bg-fuchsia-500/25',
+  'data-[state=on]:border-fuchsia-400/20 data-[state=on]:text-fuchsia-100 data-[state=on]:ring-fuchsia-400/30',
+  'data-[state=on]:focus-visible:border-fuchsia-400/50',
+  'dark:data-[state=on]:bg-fuchsia-500/15 dark:data-[state=on]:text-fuchsia-100',
 ];
 
 const MOTION_PROPS: MotionProps = {

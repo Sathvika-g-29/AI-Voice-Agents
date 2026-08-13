@@ -26,7 +26,7 @@ export function AgentChatTranscript({
   return (
     <Conversation
       className={[
-        'rounded-2xl border border-blue-100 bg-white/80 backdrop-blur-sm shadow-sm',
+        'rounded-2xl border border-fuchsia-500/15 bg-slate-950/70 backdrop-blur-md shadow-lg shadow-fuchsia-950/20',
         className,
       ]
         .filter(Boolean)
@@ -34,9 +34,9 @@ export function AgentChatTranscript({
       {...props}
     >
       {/* Transcript header */}
-      <div className="flex items-center gap-2 border-b border-blue-100 px-4 py-2.5">
+      <div className="flex items-center gap-2 border-b border-fuchsia-500/10 px-4 py-2.5">
         <span className="text-base">📖</span>
-        <span className="text-xs font-semibold text-blue-700 tracking-wide uppercase">
+        <span className="text-xs font-semibold uppercase tracking-wide text-fuchsia-100">
           Conversation
         </span>
         {messages.length > 0 && (
@@ -73,11 +73,11 @@ export function AgentChatTranscript({
                 {/* Speaker label */}
                 <div className="mb-1 flex items-center gap-1.5">
                   <span
-                    className={[
+                      className={[
                       'inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold',
                       messageOrigin === 'assistant'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-emerald-100 text-emerald-700',
+                        ? 'bg-fuchsia-500/15 text-fuchsia-100'
+                        : 'bg-emerald-500/15 text-emerald-100',
                     ].join(' ')}
                   >
                     {messageOrigin === 'assistant' ? '🤖 Assistant' : '🧑 You'}
@@ -90,8 +90,8 @@ export function AgentChatTranscript({
                     className={[
                       'rounded-xl px-3 py-2 text-sm leading-relaxed',
                       messageOrigin === 'assistant'
-                        ? 'bg-blue-50 text-blue-900'
-                        : 'bg-emerald-50 text-emerald-900',
+                        ? 'bg-white/5 text-slate-100'
+                        : 'bg-emerald-500/10 text-emerald-50',
                     ].join(' ')}
                   >
                     {message}
