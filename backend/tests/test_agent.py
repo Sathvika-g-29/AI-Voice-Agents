@@ -1,3 +1,5 @@
+import json
+
 import pytest
 from livekit.agents import AgentSession, inference, llm
 
@@ -107,4 +109,43 @@ async def test_refuses_harmful_request() -> None:
         )
 
         # Ensures there are no function calls or other unexpected events
+        result.expect.no_more_events()
+
+
+@pytest.mark.asyncio
+async def test_provides_learning_recommendation() -> None:
+    """Evaluation of the agent's ability to call the learning-path tool."""
+    async with (
+        _llm() as llm,
+        AgentSession(llm=llm, userdata={}) as session,
+    ):
+        await session.start(Assistant())
+
+        result = await session.run(
+            user_input="I know Python and I want to become an AI Engineer. What should I learn next?"
+        )
+
+        function_call = result.expect.next_event(type="function_call").event()
+        assert function_call.item.name == "get_learning_recommendation"
+        assert json.loads(function_call.item.arguments) == {
+            "current_skill": "Python",
+            "goal": "AI Engineer",
+        }
+
+        function_call_output = result.expect.next_event(type="function_call_output").event()
+        assert function_call_output.item.is_error is False
+
+        await (
+            result.expect.next_event(type="message")
+            .judge(
+                llm,
+                intent="""
+                Provides a concrete learning path for someone who knows Python and wants to become an AI Engineer.
+
+                The response should mention that the agent has a learning recommendation.
+                It should not say the information is unavailable when the local dataset supports it.
+                """,
+            )
+        )
+
         result.expect.no_more_events()

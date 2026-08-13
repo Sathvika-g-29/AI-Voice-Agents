@@ -304,7 +304,7 @@ The call analytics dashboard is also local and intentionally shows only safe, no
 * [x] Build a simple dashboard for total, successful, and failed calls
 * [x] Protect caller information on the dashboard
 * [x] Test the success path and verify the counts increase
-* [ ] Record the Day 8 demonstration video
+* [x] Record the Day 8 demonstration video
 * [ ] Publish the Day 8 LinkedIn post
 * [ ] Submit the Day 8 form link
 

@@ -39,6 +39,18 @@ init_human_help_db()
 init_call_analytics_db()
 
 
+def get_call_tracker(context: RunContext):
+    try:
+        userdata = context.userdata
+    except ValueError:
+        return None
+
+    if isinstance(userdata, dict):
+        return userdata.get("call_tracker")
+
+    return None
+
+
 SYSTEM_PROMPT = """IDENTITY
 
 You are a friendly and supportive Student Career Guide voice agent.
@@ -233,7 +245,7 @@ class Assistant(Agent):
                 "I don't want to invent a recommendation."
             )
 
-        tracker = context.userdata.get("call_tracker")
+        tracker = get_call_tracker(context)
         if tracker is not None:
             tracker.mark_success("learning recommendation delivered")
 
@@ -374,7 +386,7 @@ class Assistant(Agent):
                 }
             )
 
-        tracker = context.userdata.get("call_tracker")
+        tracker = get_call_tracker(context)
         if tracker is not None:
             tracker.mark_success("human help request created")
 
@@ -434,6 +446,7 @@ async def my_agent(ctx: JobContext):
         turn_detection=MultilingualModel(),
         vad=ctx.proc.userdata["vad"],
         preemptive_generation=True,
+        userdata={},
     )
 
     # Start the agent session
@@ -462,10 +475,10 @@ async def my_agent(ctx: JobContext):
         participant_identity=participant.identity,
         room_name=ctx.room.name,
     )
-    ctx.proc.userdata["call_tracker"] = call_tracker
+    session.userdata["call_tracker"] = call_tracker
 
     def finalize_call(_reason=None):
-        tracker = ctx.proc.userdata.get("call_tracker")
+        tracker = session.userdata.get("call_tracker")
         if tracker is not None:
             tracker.finish()
 
