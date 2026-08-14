@@ -4,6 +4,7 @@ import pytest
 from livekit.agents import AgentSession, inference, llm
 
 from agent import Assistant
+from specialist import MockInterviewSpecialist
 
 
 def _llm() -> llm.LLM:
@@ -149,3 +150,40 @@ async def test_provides_learning_recommendation() -> None:
         )
 
         result.expect.no_more_events()
+
+
+@pytest.mark.asyncio
+async def test_handoffs_to_mock_interview_specialist() -> None:
+    """Evaluation of the agent's ability to hand off interview practice."""
+    async with (
+        _llm() as llm,
+        AgentSession(llm=llm, userdata={}) as session,
+    ):
+        await session.start(Assistant())
+
+        result = await session.run(
+            user_input="Can you do a mock interview for a software engineer role?"
+        )
+
+        await (
+            result.expect.next_event(type="message")
+            .judge(
+                llm,
+                intent="""
+                Tells the user it will connect them to the mock interview specialist.
+                """,
+            )
+        )
+
+        result.expect.contains_function_call(name="handoff_to_mock_interview_specialist")
+        result.expect.contains_agent_handoff(new_agent_type=MockInterviewSpecialist)
+
+        await (
+            result.expect.next_event(type="message")
+            .judge(
+                llm,
+                intent="""
+                Introduces itself as the mock interview specialist and continues the interview practice conversation.
+                """,
+            )
+        )

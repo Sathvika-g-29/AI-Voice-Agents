@@ -24,6 +24,7 @@ from call_analytics import init_db as init_call_analytics_db, start_call
 from human_help import create_human_help_request, init_db as init_human_help_db
 from outbound import build_outbound_opening_instructions, parse_job_metadata
 from memory import init_db, lookup_user, save_user
+from specialist import MockInterviewSpecialist
 
 
 logger = logging.getLogger("agent")
@@ -111,6 +112,24 @@ Do not invent a learning path when the tool says that the requested combination 
 If the tool cannot find a recommendation, clearly tell the student that the current learning dataset does not contain that combination.
 
 Do not pretend that the tool returned information that it did not return.
+
+
+SPECIALIST HANDOFF
+
+You have access to a handoff tool called handoff_to_mock_interview_specialist.
+
+Use this tool when the user asks for a mock interview, interview role-play,
+behavioral interview practice, or feedback on interview answers.
+
+Before using the handoff tool, say a short line like:
+
+"I’ll connect you to our mock interview specialist now."
+
+Only use the handoff tool for interview practice.
+Do not hand off for general career questions, learning-path questions,
+or memory questions.
+
+The specialist will continue the same conversation and will introduce itself after taking over.
 
 
 HUMAN HELP
@@ -399,6 +418,20 @@ class Assistant(Agent):
                 "next_step": "A human helper will review this request when available.",
             }
         )
+
+    @function_tool
+    async def handoff_to_mock_interview_specialist(
+        self,
+        context: RunContext,
+        reason: str = "",
+    ) -> MockInterviewSpecialist:
+        """Hand the conversation to the mock interview specialist.
+
+        Use this when the user wants interview practice, role-play, or answer feedback.
+        """
+
+        _ = reason
+        return MockInterviewSpecialist()
 
 
 server = AgentServer()

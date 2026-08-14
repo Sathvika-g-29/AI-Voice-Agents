@@ -275,6 +275,27 @@ The SQLite store is written to:
 backend/call_analytics.db
 ```
 
+## Day 9: Specialist handoff
+
+The backend now has a specialist agent for mock interview practice.
+
+The main agent handles general career guidance. When the caller asks for interview
+practice or feedback on interview answers, it can hand the conversation to the
+mock interview specialist.
+
+The specialist focuses on:
+
+* one interview question at a time
+* short, useful feedback
+* staying in interview-practice mode only
+* handing the conversation back to the main agent when needed
+
+The specialist lives at:
+
+```text
+backend/src/specialist.py
+```
+
 ## Deployment
 
 ### Railway

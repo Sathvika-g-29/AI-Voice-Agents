@@ -308,6 +308,17 @@ The call analytics dashboard is also local and intentionally shows only safe, no
 * [x] Publish the Day 8 LinkedIn post
 * [x] Submit the Day 8 form link
 
+## Day 9 Completion Checklist
+
+* [x] Create a specialist agent with one focused job
+* [x] Add a handoff tool to the main agent
+* [x] Pass the conversation to the specialist without re-asking the user
+* [x] Let the specialist introduce itself after takeover
+* [x] Keep a normal question on the main agent
+* [ ] Record the Day 9 demonstration video
+* [ ] Publish the Day 9 LinkedIn post
+* [ ] Submit the Day 9 form link
+
 ## Challenge
 
 This project is being built as part of **10 Days of Voice Agents** and the **Voice for Bharat** challenge.
