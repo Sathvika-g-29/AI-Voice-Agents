@@ -189,7 +189,7 @@ The agent can now use a dedicated function tool to retrieve learning recommendat
 
 This moves the agent beyond simply generating responses and gives it access to application-controlled domain data.
 
-### Day 6 â€” Outbound Calls
+### Day 6  Outbound Calls
 
 The agent can now place outbound practice calls instead of only waiting for inbound browser sessions.
 
@@ -206,7 +206,7 @@ backend/src/outbound.py
 backend/src/outbound_call.py
 ```
 
-### Day 7 â€” Human Help
+### Day 7  Human Help
 
 The agent can now stop and ask for a human helper when the request needs a person.
 
@@ -223,7 +223,7 @@ The dashboard lives at:
 frontend/app/help-requests/page.tsx
 ```
 
-### Day 8 â€” Call Analytics
+### Day 8  Call Analytics
 
 The agent now records call outcomes and shows a simple dashboard with live counts.
 
@@ -315,9 +315,9 @@ The call analytics dashboard is also local and intentionally shows only safe, no
 * [x] Pass the conversation to the specialist without re-asking the user
 * [x] Let the specialist introduce itself after takeover
 * [x] Keep a normal question on the main agent
-* [ ] Record the Day 9 demonstration video
-* [ ] Publish the Day 9 LinkedIn post
-* [ ] Submit the Day 9 form link
+* [x] Record the Day 9 demonstration video
+* [x] Publish the Day 9 LinkedIn post
+* [x] Submit the Day 9 form link
 
 ## Challenge
 
